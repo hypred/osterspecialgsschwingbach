@@ -13,24 +13,40 @@
             font-family: Arial, sans-serif;
             text-align: center;
             padding: 20px;
+            background-color: #f0f0f0;
         }
 
         h1 {
             color: #4CAF50;
         }
 
+        /* Container für den Scanner */
+        .scanner-container {
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: white;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+
+        /* Video Anzeige */
         video {
             width: 100%;
             max-width: 500px;
             height: auto;
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
         }
 
+        /* Ergebnis Anzeige */
         #result {
             margin-top: 20px;
             font-size: 1.2em;
             color: #d32f2f;
         }
 
+        /* Scan Button */
         #scanTrigger {
             margin-top: 20px;
             padding: 10px 20px;
@@ -39,10 +55,22 @@
             color: white;
             border: none;
             cursor: pointer;
+            border-radius: 5px;
         }
 
         #scanTrigger:hover {
             background-color: #45a049;
+        }
+
+        /* Für mobile Geräte optimieren */
+        @media (max-width: 600px) {
+            .scanner-container {
+                padding: 10px;
+            }
+
+            video {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
@@ -51,15 +79,17 @@
     <h1>Osterspecial - QR Code Scanner</h1>
     <p>Scanne einen QR-Code und erfahre, ob du gewonnen hast!</p>
 
-    <!-- Video-Element für die Kameravorschau -->
-    <video id="video" autoplay></video>
-    <canvas id="canvas" style="display: none;"></canvas>
+    <!-- Container für den QR-Code Scanner -->
+    <div class="scanner-container">
+        <video id="video" autoplay></video>
+        <canvas id="canvas" style="display: none;"></canvas>
 
-    <!-- Button zum Starten des Scannens -->
-    <button id="scanTrigger" onclick="startScanning()">Kamera starten</button>
+        <!-- Button zum Starten des Scannens -->
+        <button id="scanTrigger" onclick="startScanning()">Kamera starten</button>
 
-    <!-- Anzeige des Ergebnisses -->
-    <div id="result"></div>
+        <!-- Anzeige des Ergebnisses -->
+        <div id="result"></div>
+    </div>
 
     <script>
         // Liste mit gültigen QR-Codes (Beispiel für gültige QR-Codes)
