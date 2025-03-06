@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Osterspecial – Gewinne ein Geschenk!</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script> <!-- jsQR-Bibliothek -->
     <script src="script.js" defer></script>
 </head>
 <body>
@@ -12,11 +13,17 @@
         <h1>Osterspecial</h1>
         <p>Scanne ein Osterei und finde heraus, ob du gewonnen hast!</p>
 
+        <!-- Bereich für den Video-Stream -->
+        <div id="scanner-container">
+            <video id="video" width="300" height="300" autoplay></video>
+            <canvas id="canvas" hidden></canvas>
+        </div>
+
+        <!-- Ergebnisbereich -->
         <div id="result" class="message">Scanne ein Osterei!</div>
 
-        <!-- Eingabefeld für den QR-Code (zum Beispiel für manuelle Eingabe der URL) -->
-        <input type="text" id="qrInput" placeholder="QR-Code scannen oder ID eingeben" />
-        <button onclick="checkWinner()">Jetzt Gewinnen!</button>
+        <!-- Button, um das Scannen zu starten -->
+        <button onclick="startScanning()">Kamera starten und scannen</button>
     </div>
 </body>
 </html>
