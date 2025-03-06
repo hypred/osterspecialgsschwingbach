@@ -4,6 +4,7 @@ body {
     background-color: #f7f7f7;
     text-align: center;
     padding: 50px;
+    margin: 0;
 }
 
 .container {
@@ -40,11 +41,48 @@ button:hover {
     background-color: #45a049;
 }
 
+/* Video-Container zentrieren und anpassen */
 #scanner-container {
     margin-top: 30px;
+    position: relative; /* Damit das Video zentriert werden kann */
+    width: 100%;
+    height: 300px;  /* Definiert eine feste Höhe */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #4CAF50;
+    border-radius: 8px;
+    overflow: hidden; /* Damit das Video nicht über den Container hinausgeht */
 }
 
 #video {
-    border: 1px solid #4CAF50;
+    width: 100%;  /* Video auf die Breite des Containers anpassen */
+    height: 100%; /* Video auf die Höhe des Containers anpassen */
+    object-fit: cover; /* Bildausschnitt so anpassen, dass es den Container füllt */
     border-radius: 8px;
+}
+
+#canvas {
+    display: none;  /* Das Canvas-Element ist unsichtbar */
+}
+
+#result {
+    margin-top: 20px;
+    font-size: 1.5em;
+    color: #333;
+}
+
+button {
+    padding: 10px 20px;
+    margin-top: 30px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.2em;
+}
+
+button:hover {
+    background-color: #45a049;
 }
