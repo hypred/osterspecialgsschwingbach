@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Osterspecial - QR Code Scanner</title>
-    <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,11 +25,10 @@
             max-width: 600px;
         }
 
-        video {
+        #reader {
             width: 100%;
             max-width: 500px;
-            border: 3px solid #4CAF50;
-            border-radius: 10px;
+            margin: auto;
         }
 
         #result {
@@ -38,7 +37,7 @@
             color: #d32f2f;
         }
 
-        #scanTrigger {
+        #startScan {
             margin-top: 20px;
             padding: 10px 20px;
             font-size: 1.2em;
@@ -49,7 +48,7 @@
             border-radius: 5px;
         }
 
-        #scanTrigger:hover {
+        #startScan:hover {
             background-color: #45a049;
         }
     </style>
@@ -59,83 +58,70 @@
     <p>Scanne einen QR-Code und erfahre, ob du gewonnen hast!</p>
 
     <div class="scanner-container">
-        <video id="video" autoplay></video>
-        <canvas id="canvas" style="display: none;"></canvas>
-        <button id="scanTrigger" onclick="startScanning()">Kamera starten</button>
+        <div id="reader"></div>
+        <button id="startScan" onclick="startScanner()">Kamera starten</button>
         <div id="result"></div>
     </div>
 
     <script>
         let validCodes = ["gewinner1", "gewinner2", "gewinner3", "gewinner4", "gewinner5"];
-        let scanning = false;
+        let scannerActive = false;
+        let html5QrCode;
 
-        function startScanning() {
-            const video = document.getElementById("video");
-            const canvas = document.getElementById("canvas");
-            const context = canvas.getContext("2d");
+        function startScanner() {
+            if (scannerActive) return;
+            scannerActive = true;
+
+            html5QrCode = new Html5Qrcode("reader");
+
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    let cameraId = devices[0].id;
+                    html5QrCode.start(
+                        cameraId,
+                        {
+                            fps: 10,
+                            qrbox: { width: 250, height: 250 },
+                        },
+                        (decodedText) => {
+                            handleQRCodeScan(decodedText);
+                        },
+                        (errorMessage) => {
+                            console.warn("QR-Code nicht erkannt:", errorMessage);
+                        }
+                    ).catch(err => {
+                        console.error("Fehler beim Starten des Scanners: ", err);
+                    });
+                }
+            }).catch(err => {
+                console.error("Kamera-Zugriff fehlgeschlagen: ", err);
+            });
+
+            document.getElementById("startScan").style.display = "none";
+        }
+
+        function handleQRCodeScan(qrCodeText) {
             const resultDiv = document.getElementById("result");
+            qrCodeText = qrCodeText.trim(); // Leerräume entfernen
 
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: { exact: "environment" } // Rückkamera bevorzugen
-                    }
-                })
-                .then((stream) => {
-                    video.srcObject = stream;
-                    video.setAttribute("playsinline", true);
-                    video.play();
-                    document.getElementById("scanTrigger").style.display = "none";
-                    scanning = true;
-                    scanQRCode();
-                })
-                .catch((err) => {
-                    console.error("Fehler beim Zugriff auf die Kamera: ", err);
-                    resultDiv.innerText = "Fehler beim Zugriff auf die Kamera.";
-                    resultDiv.style.color = "red";
-                });
+            if (validCodes.includes(qrCodeText)) {
+                validCodes = validCodes.filter(code => code !== qrCodeText);
+                resultDiv.innerText = "🎉 Herzlichen Glückwunsch, du hast gewonnen!";
+                resultDiv.style.color = "green";
+                stopScanner();
             } else {
-                resultDiv.innerText = "Dein Gerät unterstützt keine Kamera.";
+                resultDiv.innerText = "❌ Kein Gewinn, versuche es noch einmal.";
                 resultDiv.style.color = "red";
             }
         }
 
-        function scanQRCode() {
-            const video = document.getElementById("video");
-            const canvas = document.getElementById("canvas");
-            const context = canvas.getContext("2d");
-            const resultDiv = document.getElementById("result");
-
-            if (!scanning) return;
-
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, canvas.width, canvas.height, {
-                inversionAttempts: "dontInvert",
-            });
-
-            if (code) {
-                console.log("QR-Code erkannt: ", code.data);
-                const scannedCode = code.data.trim(); // Leertaste entfernen
-
-                if (validCodes.includes(scannedCode)) {
-                    validCodes = validCodes.filter(c => c !== scannedCode);
-                    resultDiv.innerText = "🎉 Herzlichen Glückwunsch, du hast gewonnen!";
-                    resultDiv.style.color = "green";
-                    scanning = false;
-                } else {
-                    resultDiv.innerText = "❌ Kein Gewinn, versuche es noch einmal.";
-                    resultDiv.style.color = "red";
-                }
-            } else {
-                console.log("Kein QR-Code erkannt. Starte erneut...");
-            }
-
-            if (scanning) {
-                requestAnimationFrame(scanQRCode);
+        function stopScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    scannerActive = false;
+                }).catch(err => {
+                    console.error("Fehler beim Stoppen des Scanners: ", err);
+                });
             }
         }
     </script>
