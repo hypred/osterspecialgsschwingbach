@@ -1,58 +1,50 @@
-// Array mit den gültigen QR-Code-IDs
-const validCodes = [
-    "gewinner1", // Beispiel für einen gültigen QR-Code
-    "gewinner2",
-    "gewinner3",
-    "gewinner4",
-    "gewinner5"
-];
+/* Grundlegendes Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f7f7;
+    text-align: center;
+    padding: 50px;
+}
 
-// Funktion, die das Scannen mit der Kamera startet
-function startScanning() {
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const context = canvas.getContext("2d");
-    const resultDiv = document.getElementById('result');
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
 
-    // Kamera zugänglich machen
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then((stream) => {
-            video.srcObject = stream;
-            video.setAttribute("playsinline", true); // Für iOS erforderlich
-            video.play();
-            scanQRCode(); // QR-Code scannen, sobald das Video läuft
-        })
-        .catch((err) => {
-            resultDiv.innerText = "Kamera konnte nicht gestartet werden.";
-            resultDiv.style.color = "red";
-        });
+h1 {
+    color: #4CAF50;
+}
 
-    // Funktion zum Scannen des QR-Codes
-    function scanQRCode() {
-        // Canvas auf die gleiche Größe wie das Video setzen
-        canvas.height = video.videoHeight;
-        canvas.width = video.videoWidth;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // QR-Code mit jsQR analysieren
-        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, canvas.width, canvas.height, {
-            inversionAttempts: "dontInvert",
-        });
+.message {
+    margin-top: 20px;
+    font-size: 1.5em;
+    color: #333;
+}
 
-        if (code) {
-            const scannedCode = code.data;
-            // Überprüfen, ob der QR-Code gültig ist
-            if (validCodes.includes(scannedCode)) {
-                resultDiv.innerText = "Herzlichen Glückwunsch, du hast gewonnen!";
-                resultDiv.style.color = "green";
-            } else {
-                resultDiv.innerText = "Leider kein Gewinn, versuche es noch einmal!";
-                resultDiv.style.color = "red";
-            }
-        }
+button {
+    padding: 10px 20px;
+    margin-top: 30px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.2em;
+}
 
-        // Weiter scannen
-        requestAnimationFrame(scanQRCode);
-    }
+button:hover {
+    background-color: #45a049;
+}
+
+#scanner-container {
+    margin-top: 30px;
+}
+
+#video {
+    border: 1px solid #4CAF50;
+    border-radius: 8px;
 }
