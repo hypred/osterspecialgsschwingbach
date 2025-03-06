@@ -14,18 +14,24 @@ function startScanning() {
     const context = canvas.getContext("2d");
     const resultDiv = document.getElementById('result');
 
-    // Kamera zugänglich machen
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then((stream) => {
-            video.srcObject = stream;
-            video.setAttribute("playsinline", true); // Für iOS erforderlich
-            video.play();
-            scanQRCode(); // QR-Code scannen, sobald das Video läuft
-        })
-        .catch((err) => {
-            resultDiv.innerText = "Kamera konnte nicht gestartet werden.";
-            resultDiv.style.color = "red";
-        });
+    // Kamera zugänglich machen (getUserMedia benötigt https://)
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                // Den Video-Tag auf den Kamera-Stream setzen
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true); // Für iOS erforderlich
+                video.play();
+                scanQRCode(); // QR-Code scannen, sobald das Video läuft
+            })
+            .catch((err) => {
+                resultDiv.innerText = "Kamera konnte nicht gestartet werden.";
+                resultDiv.style.color = "red";
+            });
+    } else {
+        resultDiv.innerText = "Kamera wird nicht unterstützt.";
+        resultDiv.style.color = "red";
+    }
 
     // Funktion zum Scannen des QR-Codes
     function scanQRCode() {
