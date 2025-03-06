@@ -1,4 +1,3 @@
-// Array mit den gültigen QR-Code-IDs
 let validCodes = [
     "gewinner1", // Beispiel für einen gültigen QR-Code
     "gewinner2",
@@ -30,6 +29,8 @@ function startScanning() {
             video.setAttribute("playsinline", true); // Für iOS erforderlich
             video.play();
             document.getElementById('scanTrigger').style.display = 'inline'; // Zeige den Scan-Button an
+            scanning = true;  // Setze Scanning-Flag
+            scanQRCode(); // Starte sofort den Scan-Prozess
         })
         .catch((err) => {
             resultDiv.innerText = "Kamera konnte nicht gestartet werden.";
@@ -38,14 +39,6 @@ function startScanning() {
     } else {
         resultDiv.innerText = "Kamera wird nicht unterstützt.";
         resultDiv.style.color = "red";
-    }
-}
-
-// Funktion, die das Scannen manuell auslöst
-function triggerScan() {
-    if (!scanning) {
-        scanning = true;  // Setze das Flag, dass wir gerade scannen
-        scanQRCode();  // Starte das Scannen
     }
 }
 
@@ -59,6 +52,8 @@ function scanQRCode() {
     // Canvas auf die gleiche Größe wie das Video setzen
     canvas.height = video.videoHeight;
     canvas.width = video.videoWidth;
+
+    // Zeichne das Video auf das Canvas
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // QR-Code mit jsQR analysieren
@@ -69,7 +64,7 @@ function scanQRCode() {
 
     if (code) {
         const scannedCode = code.data;
-        // Überprüfen, ob der QR-Code gültig ist und nicht bereits verwendet wurde
+        // Überprüfen, ob der QR-Code gültig ist
         if (validCodes.includes(scannedCode)) {
             // Einmalige Gültigkeit: Entferne den Code aus der Liste, wenn er benutzt wurde
             validCodes = validCodes.filter(code => code !== scannedCode);
@@ -80,12 +75,11 @@ function scanQRCode() {
         } else {
             resultDiv.innerText = "Leider kein Gewinn, versuche es noch einmal!";
             resultDiv.style.color = "red";
-            scanning = false; // Setze das Flag zurück
         }
-    } else {
-        // Wenn kein QR-Code erkannt wurde, weiter scannen
-        if (scanning) {
-            requestAnimationFrame(scanQRCode);
-        }
+    }
+
+    // Weiter scannen
+    if (scanning) {
+        requestAnimationFrame(scanQRCode);
     }
 }
