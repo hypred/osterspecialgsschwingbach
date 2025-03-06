@@ -1,0 +1,18 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+}
+
+.message {
+    font-size: 24px;
+    margin-top: 20px;
+}
+
+.win {
+    color: green;
+}
+
+.used {
+    color: red;
+}
