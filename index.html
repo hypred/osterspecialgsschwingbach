@@ -1,18 +1,14 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Osterspecial - QR Code Scanner</title>
-    <!-- Einbinden der jsQR-Bibliothek -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
     <style>
-        /* Grundlegende Stile für die Seite */
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            padding: 20px;
             background-color: #f0f0f0;
         }
 
@@ -20,7 +16,6 @@
             color: #4CAF50;
         }
 
-        /* Container für den Scanner */
         .scanner-container {
             border: 2px solid #4CAF50;
             border-radius: 10px;
@@ -30,23 +25,19 @@
             max-width: 600px;
         }
 
-        /* Video Anzeige */
         video {
             width: 100%;
             max-width: 500px;
-            height: auto;
             border: 3px solid #4CAF50;
             border-radius: 10px;
         }
 
-        /* Ergebnis Anzeige */
         #result {
             margin-top: 20px;
             font-size: 1.2em;
             color: #d32f2f;
         }
 
-        /* Scan Button */
         #scanTrigger {
             margin-top: 20px;
             padding: 10px 20px;
@@ -61,125 +52,92 @@
         #scanTrigger:hover {
             background-color: #45a049;
         }
-
-        /* Für mobile Geräte optimieren */
-        @media (max-width: 600px) {
-            .scanner-container {
-                padding: 10px;
-            }
-
-            video {
-                max-width: 100%;
-            }
-        }
     </style>
 </head>
-
 <body>
     <h1>Osterspecial - QR Code Scanner</h1>
     <p>Scanne einen QR-Code und erfahre, ob du gewonnen hast!</p>
 
-    <!-- Container für den QR-Code Scanner -->
     <div class="scanner-container">
         <video id="video" autoplay></video>
         <canvas id="canvas" style="display: none;"></canvas>
-
-        <!-- Button zum Starten des Scannens -->
         <button id="scanTrigger" onclick="startScanning()">Kamera starten</button>
-
-        <!-- Anzeige des Ergebnisses -->
         <div id="result"></div>
     </div>
 
     <script>
-        // Liste mit gültigen QR-Codes (Beispiel für gültige QR-Codes)
-        let validCodes = [
-            "gewinner1", // Beispiel für einen gültigen QR-Code
-            "gewinner2",
-            "gewinner3",
-            "gewinner4",
-            "gewinner5"
-        ];
+        let validCodes = ["gewinner1", "gewinner2", "gewinner3", "gewinner4", "gewinner5"];
+        let scanning = false;
 
-        let scanning = false; // Flag, ob wir gerade scannen
-
-        // Funktion, die das Scannen mit der Kamera startet
         function startScanning() {
             const video = document.getElementById("video");
             const canvas = document.getElementById("canvas");
             const context = canvas.getContext("2d");
-            const resultDiv = document.getElementById('result');
+            const resultDiv = document.getElementById("result");
 
-            // Kamera zugänglich machen (getUserMedia benötigt https://)
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                // Versuchen, die Rückkamera zu verwenden
                 navigator.mediaDevices.getUserMedia({
                     video: {
-                        facingMode: "environment"  // Rückkamera verwenden
+                        facingMode: { exact: "environment" } // Rückkamera bevorzugen
                     }
                 })
                 .then((stream) => {
-                    // Den Video-Tag auf den Kamera-Stream setzen
                     video.srcObject = stream;
-                    video.setAttribute("playsinline", true); // Für iOS erforderlich
+                    video.setAttribute("playsinline", true);
                     video.play();
-                    document.getElementById('scanTrigger').style.display = 'none'; // Verstecke den Button
-                    scanning = true;  // Setze Scanning-Flag
-                    scanQRCode(); // Starte sofort den Scan-Prozess
+                    document.getElementById("scanTrigger").style.display = "none";
+                    scanning = true;
+                    scanQRCode();
                 })
                 .catch((err) => {
-                    resultDiv.innerText = "Kamera konnte nicht gestartet werden.";
+                    console.error("Fehler beim Zugriff auf die Kamera: ", err);
+                    resultDiv.innerText = "Fehler beim Zugriff auf die Kamera.";
                     resultDiv.style.color = "red";
                 });
             } else {
-                resultDiv.innerText = "Kamera wird nicht unterstützt.";
+                resultDiv.innerText = "Dein Gerät unterstützt keine Kamera.";
                 resultDiv.style.color = "red";
             }
         }
 
-        // Funktion zum Scannen des QR-Codes
         function scanQRCode() {
             const video = document.getElementById("video");
             const canvas = document.getElementById("canvas");
             const context = canvas.getContext("2d");
-            const resultDiv = document.getElementById('result');
+            const resultDiv = document.getElementById("result");
 
-            // Canvas auf die gleiche Größe wie das Video setzen
-            canvas.height = video.videoHeight;
+            if (!scanning) return;
+
             canvas.width = video.videoWidth;
-
-            // Zeichne das Video auf das Canvas
+            canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // QR-Code mit jsQR analysieren
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
             const code = jsQR(imageData.data, canvas.width, canvas.height, {
                 inversionAttempts: "dontInvert",
             });
 
             if (code) {
-                const scannedCode = code.data;
-                // Überprüfen, ob der QR-Code gültig ist
-                if (validCodes.includes(scannedCode)) {
-                    // Einmalige Gültigkeit: Entferne den Code aus der Liste, wenn er benutzt wurde
-                    validCodes = validCodes.filter(code => code !== scannedCode);
+                console.log("QR-Code erkannt: ", code.data);
+                const scannedCode = code.data.trim(); // Leertaste entfernen
 
-                    resultDiv.innerText = "Herzlichen Glückwunsch, du hast gewonnen!";
+                if (validCodes.includes(scannedCode)) {
+                    validCodes = validCodes.filter(c => c !== scannedCode);
+                    resultDiv.innerText = "🎉 Herzlichen Glückwunsch, du hast gewonnen!";
                     resultDiv.style.color = "green";
-                    scanning = false; // Setze das Flag zurück
+                    scanning = false;
                 } else {
-                    resultDiv.innerText = "Leider kein Gewinn, versuche es noch einmal!";
+                    resultDiv.innerText = "❌ Kein Gewinn, versuche es noch einmal.";
                     resultDiv.style.color = "red";
                 }
+            } else {
+                console.log("Kein QR-Code erkannt. Starte erneut...");
             }
 
-            // Weiter scannen
             if (scanning) {
                 requestAnimationFrame(scanQRCode);
             }
         }
     </script>
-
 </body>
-
 </html>
