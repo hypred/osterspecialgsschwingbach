@@ -1,31 +1,77 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR-Code Scanner</title>
+    <title>Osterspecial - QR Code Scanner</title>
     <!-- Einbinden der jsQR-Bibliothek -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
-</head>
-<body>
+    <style>
+        /* Einige grundlegende Stile für die Seite */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
 
-    <h1>QR-Code Scanner</h1>
-    <video id="video" width="100%" height="auto" autoplay></video>
+        h1 {
+            color: #4CAF50;
+        }
+
+        video {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #d32f2f;
+        }
+
+        #scanTrigger {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #scanTrigger:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Osterspecial - QR Code Scanner</h1>
+    <p>Scanne einen QR-Code und erfahre, ob du gewonnen hast!</p>
+
+    <!-- Video-Element für die Kameravorschau -->
+    <video id="video" autoplay></video>
     <canvas id="canvas" style="display: none;"></canvas>
+
+    <!-- Button zum Starten des Scannens -->
+    <button id="scanTrigger" onclick="startScanning()">Kamera starten</button>
+
+    <!-- Anzeige des Ergebnisses -->
     <div id="result"></div>
 
-    <button id="scanTrigger" style="display: none;" onclick="triggerScan()">Kamera starten</button>
-
     <script>
+        // Liste mit gültigen QR-Codes (Die QR-Codes, die gewonnen haben)
         let validCodes = [
-            "gewinner1",
+            "gewinner1", // Beispiel für einen gültigen QR-Code
             "gewinner2",
             "gewinner3",
             "gewinner4",
             "gewinner5"
         ];
 
-        let scanning = false;
+        let scanning = false; // Flag, ob wir gerade scannen
 
         // Funktion, die das Scannen mit der Kamera startet
         function startScanning() {
@@ -47,7 +93,7 @@
                     video.srcObject = stream;
                     video.setAttribute("playsinline", true); // Für iOS erforderlich
                     video.play();
-                    document.getElementById('scanTrigger').style.display = 'inline'; // Zeige den Scan-Button an
+                    document.getElementById('scanTrigger').style.display = 'none'; // Verstecke den Button
                     scanning = true;  // Setze Scanning-Flag
                     scanQRCode(); // Starte sofort den Scan-Prozess
                 })
@@ -103,5 +149,7 @@
             }
         }
     </script>
+
 </body>
+
 </html>
