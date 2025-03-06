@@ -4,20 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Osterspecial – Gewinne ein Geschenk!</title>
-    <link rel="stylesheet" href="style.css"> <!-- Verlinkung zur CSS-Datei -->
-    <script src="script.js" defer></script> <!-- Verlinkung zur JavaScript-Datei -->
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
     <div class="container">
         <h1>Osterspecial</h1>
-        <p>Scanne das Osterei und finde heraus, ob du gewonnen hast!</p>
-        
-        <!-- Hier kannst du den QR-Code anzeigen oder den Benutzer auffordern, zu scannen -->
+        <p>Scanne ein Osterei und finde heraus, ob du gewonnen hast!</p>
+
         <div id="result" class="message">Scanne ein Osterei!</div>
-        
-        <!-- Beispiel für einen Button, der eine Aktion auslöst -->
+
+        <!-- Eingabefeld für den QR-Code (zum Beispiel für manuelle Eingabe der URL) -->
+        <input type="text" id="qrInput" placeholder="QR-Code scannen oder ID eingeben" />
         <button onclick="checkWinner()">Jetzt Gewinnen!</button>
     </div>
 </body>
 </html>
-
