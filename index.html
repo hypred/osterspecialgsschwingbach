@@ -28,9 +28,9 @@
             background-color: white;
             margin: 20px auto;
             max-width: 600px;
-            transition: transform 0.5s ease-out; /* Sanfte Animation */
             transform: scale(0.8);
             opacity: 0;
+            transition: transform 0.5s ease-out, opacity 0.5s ease-out;
         }
         .scanner-active {
             transform: scale(1);
@@ -64,42 +64,22 @@
             font-size: 1em;
             margin-top: 10px;
         }
-        @keyframes blink {
-            0%, 100% { color: green; transform: scale(1); }
-            50% { color: limegreen; transform: scale(1.1); }
-        }
-        .winner {
-            animation: blink 0.5s ease-in-out 3;
-        }
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            background-color: red;
-            top: -10px;
-            opacity: 0.7;
-            border-radius: 50%;
-            animation: fall linear 2s infinite;
-        }
-        @keyframes fall {
-            from { transform: translateY(-10px); opacity: 1; }
-            to { transform: translateY(100vh); opacity: 0; }
-        }
     </style>
 </head>
 <body>
     <h1>Osterspecial - QR Code Scanner</h1>
     <p>Scanne einen QR-Code!</p>
 
+    <!-- Button bleibt immer sichtbar -->
+    <button id="startScan" onclick="startScanner()">Kamera starten</button>
+
     <div class="scanner-container" id="scannerContainer">
         <div id="reader"></div>
-        <button id="startScan" onclick="startScanner()">Kamera starten</button>
         <div id="result"></div>
         <p id="errorMessage"></p>
     </div>
 
     <script>
-        // ✅ Firebase Konfiguration
         const firebaseConfig = {
             apiKey: "AIzaSyCB1gtbRyxbLSuxu47CfA7Zpfg3Dq6HSsc",
             authDomain: "osterspecial-5855d.firebaseapp.com",
@@ -122,6 +102,7 @@
             scannerActive = true;
             document.getElementById("errorMessage").innerText = "";
             document.getElementById("scannerContainer").classList.add("scanner-active");
+            document.getElementById("startScan").style.display = "none"; 
 
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
             .then(function(stream) {
@@ -131,22 +112,13 @@
 
                 html5QrCode.start(
                     { facingMode: "environment" },
-                    {
-                        fps: 10,
-                        qrbox: { width: 250, height: 250 },
-                    },
-                    (decodedText) => {
-                        handleQRCodeScan(decodedText);
-                    },
-                    (errorMessage) => {
-                        console.warn("⚠️ QR-Code nicht erkannt:", errorMessage);
-                    }
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    (decodedText) => { handleQRCodeScan(decodedText); },
+                    (errorMessage) => { console.warn("⚠️ QR-Code nicht erkannt:", errorMessage); }
                 ).catch(err => {
                     console.error("❌ Fehler beim Starten der Kamera: ", err);
                     document.getElementById("errorMessage").innerText = "❌ Kamera konnte nicht gestartet werden!";
                 });
-
-                document.getElementById("startScan").style.display = "none";
 
             }).catch(function(err) {
                 document.getElementById("errorMessage").innerText = "❌ Zugriff auf Kamera verweigert!";
@@ -171,8 +143,6 @@
                     database.ref("usedCodes/" + qrCodeText).set(true);
                     resultDiv.innerText = "🎉 Herzlichen Glückwunsch, du hast gewonnen!";
                     resultDiv.style.color = "green";
-                    resultDiv.classList.add("winner");
-                    startConfetti();
                     stopScanner();
                 } else {
                     resultDiv.innerText = "❌ Kein Gewinn.";
@@ -188,17 +158,6 @@
                 html5QrCode.stop().then(() => {
                     scannerActive = false;
                 }).catch(err => console.error("Fehler beim Stoppen des Scanners: ", err));
-            }
-        }
-
-        function startConfetti() {
-            for (let i = 0; i < 50; i++) {
-                let confetti = document.createElement("div");
-                confetti.className = "confetti";
-                confetti.style.left = Math.random() * 100 + "vw";
-                confetti.style.backgroundColor = ["red", "blue", "green", "yellow", "purple", "orange"][Math.floor(Math.random() * 6)];
-                document.body.appendChild(confetti);
-                setTimeout(() => confetti.remove(), 2000);
             }
         }
     </script>
