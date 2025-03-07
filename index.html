@@ -21,32 +21,33 @@
         h1 {
             color: #4CAF50;
         }
-        
-        /* Scanner-Container mit weicher Öffnungsanimation */
+
+        /* Scanner-Container */
         .scanner-container {
+            display: none; /* Versteckt, bis Kamera startet */
             border: 2px solid #4CAF50;
             border-radius: 10px;
             padding: 20px;
             background-color: white;
             margin: 20px auto;
             max-width: 600px;
-            max-height: 0;   /* Startzustand */
             opacity: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            transform: scale(0.9);
+            transition: opacity 0.5s ease-in-out, transform 0.3s ease-in-out;
         }
         .scanner-active {
-            max-height: 500px; /* Genug Platz für Scanner */
+            display: block;
             opacity: 1;
+            transform: scale(1);
         }
-        
+
         #reader {
             width: 100%;
             max-width: 500px;
             margin: auto;
         }
-        
-        /* Gewinntext mit Blink-Animation */
+
+        /* Gewinntext */
         @keyframes blink {
             0%, 100% { color: green; }
             50% { color: darkgreen; }
@@ -76,15 +77,21 @@
             font-size: 1em;
             margin-top: 10px;
         }
+
+        /* Konfetti-Fall-Animation */
+        @keyframes fall {
+            to { transform: translateY(100vh); }
+        }
     </style>
 </head>
 <body>
     <h1>Osterspecial - QR Code Scanner</h1>
     <p>Scanne einen QR-Code!</p>
 
-    <!-- Button bleibt immer sichtbar -->
+    <!-- Button immer sichtbar -->
     <button id="startScan" onclick="startScanner()">Kamera starten</button>
 
+    <!-- Scanner versteckt starten -->
     <div class="scanner-container" id="scannerContainer">
         <div id="reader"></div>
         <div id="result"></div>
@@ -113,13 +120,18 @@
             if (scannerActive) return;
             scannerActive = true;
             document.getElementById("errorMessage").innerText = "";
-            document.getElementById("scannerContainer").classList.add("scanner-active");
-            document.getElementById("startScan").style.display = "none"; 
 
+            // Scanner-Container anzeigen
+            let scannerContainer = document.getElementById("scannerContainer");
+            scannerContainer.style.display = "block";
+            setTimeout(() => scannerContainer.classList.add("scanner-active"), 10);
+
+            // Kamera testen
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
             .then(function(stream) {
-                stream.getTracks().forEach(track => track.stop());
+                stream.getTracks().forEach(track => track.stop()); // Test-Stream schließen
 
+                // QR-Code Scanner starten
                 html5QrCode = new Html5Qrcode("reader");
 
                 html5QrCode.start(
@@ -131,6 +143,9 @@
                     console.error("❌ Fehler beim Starten der Kamera: ", err);
                     document.getElementById("errorMessage").innerText = "❌ Kamera konnte nicht gestartet werden!";
                 });
+
+                // Button nach erfolgreichem Start ausblenden
+                document.getElementById("startScan").style.display = "none"; 
 
             }).catch(function(err) {
                 document.getElementById("errorMessage").innerText = "❌ Zugriff auf Kamera verweigert!";
@@ -186,14 +201,8 @@
                 confetti.style.fontSize = Math.random() * 20 + 10 + "px";
                 confetti.style.animation = `fall ${Math.random() * 2 + 1}s linear infinite`;
                 document.body.appendChild(confetti);
-
                 setTimeout(() => confetti.remove(), 2000);
             }
-        }
-
-        /* Konfetti-Fall-Animation */
-        @keyframes fall {
-            to { transform: translateY(100vh); }
         }
     </script>
 </body>
