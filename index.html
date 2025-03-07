@@ -61,7 +61,7 @@
 </head>
 <body>
     <h1>Osterspecial - QR Code Scanner</h1>
-    <p>Scanne einen QR-Code!</p>
+    <p>Scanne einen QR-Code und erfahre, ob du gewonnen hast!</p>
 
     <div class="scanner-container">
         <div id="reader"></div>
@@ -83,35 +83,21 @@
 
             html5QrCode = new Html5Qrcode("reader");
 
-            Html5Qrcode.getCameras().then(devices => {
-                if (!devices || devices.length === 0) {
-                    document.getElementById("errorMessage").innerText = "❌ Keine Kamera gefunden!";
-                    return;
+            html5QrCode.start(
+                { facingMode: "environment" }, // Erzwingt die Rückkamera
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                },
+                (decodedText) => {
+                    handleQRCodeScan(decodedText);
+                },
+                (errorMessage) => {
+                    console.warn("⚠️ QR-Code nicht erkannt:", errorMessage);
                 }
-
-                let backCamera = devices.find(device => device.label.toLowerCase().includes("back")) || devices[0];
-
-                console.log("🎥 Gefundene Kamera: ", backCamera.label);
-
-                html5QrCode.start(
-                    backCamera.id,
-                    {
-                        fps: 10,
-                        qrbox: { width: 250, height: 250 },
-                    },
-                    (decodedText) => {
-                        handleQRCodeScan(decodedText);
-                    },
-                    (errorMessage) => {
-                        console.warn("⚠️ QR-Code nicht erkannt:", errorMessage);
-                    }
-                ).catch(err => {
-                    console.error("❌ Fehler beim Starten der Kamera: ", err);
-                    document.getElementById("errorMessage").innerText = "❌ Kamera konnte nicht gestartet werden!";
-                });
-            }).catch(err => {
-                console.error("❌ Kamera-Zugriff verweigert: ", err);
-                document.getElementById("errorMessage").innerText = "❌ Zugriff auf Kamera verweigert!";
+            ).catch(err => {
+                console.error("❌ Fehler beim Starten der Kamera: ", err);
+                document.getElementById("errorMessage").innerText = "❌ Kamera konnte nicht gestartet werden!";
             });
 
             document.getElementById("startScan").style.display = "none";
@@ -127,7 +113,7 @@
                 resultDiv.style.color = "green";
                 stopScanner();
             } else {
-                resultDiv.innerText = "❌ Kein Gewinn";
+                resultDiv.innerText = "❌ Kein Gewinn, versuche es noch einmal.";
                 resultDiv.style.color = "red";
                 stopScanner();
                 setTimeout(() => {
