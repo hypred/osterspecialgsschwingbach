@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Osterspecial - QR Code Scanner</title>
 
-    <!-- ✅ KORREKTE Firebase-Einbindung -->
+    <!-- ✅ Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 
@@ -28,7 +28,13 @@
             background-color: white;
             margin: 20px auto;
             max-width: 600px;
-            transition: 0.1s; /* Sanfte Animation */;
+            transition: transform 0.5s ease-out; /* Sanfte Animation */
+            transform: scale(0.8);
+            opacity: 0;
+        }
+        .scanner-active {
+            transform: scale(1);
+            opacity: 1;
         }
         #reader {
             width: 100%;
@@ -48,14 +54,36 @@
             border: none;
             cursor: pointer;
             border-radius: 5px;
+            transition: transform 0.1s ease;
         }
-        #startScan:hover {
-            background-color: #45a049;
+        #startScan:active {
+            transform: scale(0.9);
         }
         #errorMessage {
             color: red;
             font-size: 1em;
             margin-top: 10px;
+        }
+        @keyframes blink {
+            0%, 100% { color: green; transform: scale(1); }
+            50% { color: limegreen; transform: scale(1.1); }
+        }
+        .winner {
+            animation: blink 0.5s ease-in-out 3;
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            top: -10px;
+            opacity: 0.7;
+            border-radius: 50%;
+            animation: fall linear 2s infinite;
+        }
+        @keyframes fall {
+            from { transform: translateY(-10px); opacity: 1; }
+            to { transform: translateY(100vh); opacity: 0; }
         }
     </style>
 </head>
@@ -63,7 +91,7 @@
     <h1>Osterspecial - QR Code Scanner</h1>
     <p>Scanne einen QR-Code!</p>
 
-    <div class="scanner-container">
+    <div class="scanner-container" id="scannerContainer">
         <div id="reader"></div>
         <button id="startScan" onclick="startScanner()">Kamera starten</button>
         <div id="result"></div>
@@ -71,7 +99,7 @@
     </div>
 
     <script>
-        // ✅ KORREKTE Firebase-Konfiguration
+        // ✅ Firebase Konfiguration
         const firebaseConfig = {
             apiKey: "AIzaSyCB1gtbRyxbLSuxu47CfA7Zpfg3Dq6HSsc",
             authDomain: "osterspecial-5855d.firebaseapp.com",
@@ -82,11 +110,9 @@
             appId: "1:777852613251:web:2aa4e99b449bddcd6461b6"
         };
 
-        // ✅ Firebase initialisieren
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // ✅ Variablen initialisieren
         let validCodes = ["gewinner1", "gewinner2", "gewinner3", "gewinner4", "gewinner5", "gewinner6"];
         let scannerActive = false;
         let html5QrCode;
@@ -95,17 +121,16 @@
             if (scannerActive) return;
             scannerActive = true;
             document.getElementById("errorMessage").innerText = "";
+            document.getElementById("scannerContainer").classList.add("scanner-active");
 
-            // ✅ Kamera-Zugriff testen
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
             .then(function(stream) {
-                stream.getTracks().forEach(track => track.stop()); // Stoppe den Test-Stream
+                stream.getTracks().forEach(track => track.stop());
 
-                // Falls Kamera funktioniert, starte QR-Scanner
                 html5QrCode = new Html5Qrcode("reader");
 
                 html5QrCode.start(
-                    { facingMode: "environment" }, // Rückkamera bevorzugen
+                    { facingMode: "environment" },
                     {
                         fps: 10,
                         qrbox: { width: 250, height: 250 },
@@ -133,7 +158,6 @@
             const resultDiv = document.getElementById("result");
             qrCodeText = qrCodeText.trim();
 
-            // Prüfe, ob der Code bereits gescannt wurde
             database.ref("usedCodes/" + qrCodeText).once("value", (snapshot) => {
                 if (snapshot.exists()) {
                     resultDiv.innerText = "❌ Dieser Code wurde bereits verwendet!";
@@ -143,11 +167,12 @@
                     return;
                 }
 
-                // Prüfe, ob es ein gültiger Gewinncode ist
                 if (validCodes.includes(qrCodeText)) {
                     database.ref("usedCodes/" + qrCodeText).set(true);
                     resultDiv.innerText = "🎉 Herzlichen Glückwunsch, du hast gewonnen!";
                     resultDiv.style.color = "green";
+                    resultDiv.classList.add("winner");
+                    startConfetti();
                     stopScanner();
                 } else {
                     resultDiv.innerText = "❌ Kein Gewinn.";
@@ -163,6 +188,17 @@
                 html5QrCode.stop().then(() => {
                     scannerActive = false;
                 }).catch(err => console.error("Fehler beim Stoppen des Scanners: ", err));
+            }
+        }
+
+        function startConfetti() {
+            for (let i = 0; i < 50; i++) {
+                let confetti = document.createElement("div");
+                confetti.className = "confetti";
+                confetti.style.left = Math.random() * 100 + "vw";
+                confetti.style.backgroundColor = ["red", "blue", "green", "yellow", "purple", "orange"][Math.floor(Math.random() * 6)];
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 2000);
             }
         }
     </script>
