@@ -154,33 +154,47 @@
         }
 
         function handleQRCodeScan(qrCodeText) {
-            const resultDiv = document.getElementById("result");
-            qrCodeText = qrCodeText.trim();
+    const resultDiv = document.getElementById("result");
+    qrCodeText = qrCodeText.trim();
 
-            database.ref("usedCodes/" + qrCodeText).once("value", (snapshot) => {
-                if (snapshot.exists()) {
-                    resultDiv.innerText = "❌ Dieser Code wurde bereits verwendet!";
-                    resultDiv.style.color = "red";
-                    stopScanner();
-                    setTimeout(() => { location.reload(); }, 2000);
-                    return;
-                }
+    const masterCode = "immerGewinn"; // 🔥 Dieser Code funktioniert IMMER
 
-                if (validCodes.includes(qrCodeText)) {
-                    database.ref("usedCodes/" + qrCodeText).set(true);
-                    resultDiv.innerText = "🎉 Herzlichen Glückwunsch, du hast gewonnen!";
-                    resultDiv.classList.add("win-text");
-                    resultDiv.style.color = "green";
-                    startConfetti();
-                    stopScanner();
-                } else {
-                    resultDiv.innerText = "❌ Kein Gewinn.";
-                    resultDiv.style.color = "red";
-                    stopScanner();
-                    setTimeout(() => { location.reload(); }, 2000);
-                }
-            });
+    if (qrCodeText === masterCode) {
+        // 🎉 Master-Code erkannt → Direkt Gewinn anzeigen
+        resultDiv.innerText = "🎉 Herzlichen Glückwunsch, du hast immer gewonnen!";
+        resultDiv.classList.add("win-text");
+        resultDiv.style.color = "green";
+        startConfetti();
+        stopScanner();
+        return;
+    }
+
+    // 🔍 Prüfe, ob der Code bereits in der Datenbank verwendet wurde
+    database.ref("usedCodes/" + qrCodeText).once("value", (snapshot) => {
+        if (snapshot.exists()) {
+            resultDiv.innerText = "❌ Dieser Code wurde bereits verwendet!";
+            resultDiv.style.color = "red";
+            stopScanner();
+            setTimeout(() => { location.reload(); }, 2000);
+            return;
         }
+
+        // 🔍 Prüfe, ob es ein regulärer Gewinncode ist
+        if (validCodes.includes(qrCodeText)) {
+            database.ref("usedCodes/" + qrCodeText).set(true);
+            resultDiv.innerText = "🎉 Herzlichen Glückwunsch, du hast gewonnen!";
+            resultDiv.classList.add("win-text");
+            resultDiv.style.color = "green";
+            startConfetti();
+            stopScanner();
+        } else {
+            resultDiv.innerText = "❌ Kein Gewinn.";
+            resultDiv.style.color = "red";
+            stopScanner();
+            setTimeout(() => { location.reload(); }, 2000);
+        }
+    });
+}
 
         function stopScanner() {
             if (html5QrCode) {
