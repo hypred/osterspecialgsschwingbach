@@ -72,6 +72,7 @@
 
     <script>
         let validCodes = ["gewinner1", "gewinner2", "gewinner3", "gewinner4", "gewinner5"];
+        let usedCodes = new Set();  // Speichert gescannte Codes
         let scannerActive = false;
         let html5QrCode;
 
@@ -84,7 +85,7 @@
             html5QrCode = new Html5Qrcode("reader");
 
             html5QrCode.start(
-                { facingMode: "environment" }, // Erzwingt die Rückkamera
+                { facingMode: "environment" }, // Rückkamera erzwingen
                 {
                     fps: 10,
                     qrbox: { width: 250, height: 250 },
@@ -107,17 +108,27 @@
             const resultDiv = document.getElementById("result");
             qrCodeText = qrCodeText.trim();
 
+            if (usedCodes.has(qrCodeText)) {
+                resultDiv.innerText = "❌ Dieser Code wurde bereits verwendet!";
+                resultDiv.style.color = "red";
+                stopScanner();
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+                return;
+            }
+
             if (validCodes.includes(qrCodeText)) {
-                validCodes = validCodes.filter(code => code !== qrCodeText);
+                usedCodes.add(qrCodeText); // Code als benutzt speichern
                 resultDiv.innerText = "🎉 Herzlichen Glückwunsch, du hast gewonnen!";
                 resultDiv.style.color = "green";
                 stopScanner();
             } else {
-                resultDiv.innerText = "❌ Kein Gewinn";
+                resultDiv.innerText = "❌ Kein Gewinn.";
                 resultDiv.style.color = "red";
                 stopScanner();
                 setTimeout(() => {
-                    location.reload(); // Seite neuladen nach falschem Scan
+                    location.reload();
                 }, 2000);
             }
         }
