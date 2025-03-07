@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Osterspecial - QR Code Scanner</title>
-   <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -76,10 +76,10 @@
         let html5QrCode;
 
         function startScanner() {
-            console.log("📸 Start-Button wurde geklickt"); // Debugging in der Konsole
+            console.log("📸 Start-Button wurde geklickt");
             if (scannerActive) return;
             scannerActive = true;
-            document.getElementById("errorMessage").innerText = ""; // Fehlermeldungen zurücksetzen
+            document.getElementById("errorMessage").innerText = "";
 
             html5QrCode = new Html5Qrcode("reader");
 
@@ -91,7 +91,7 @@
 
                 let backCamera = devices.find(device => device.label.toLowerCase().includes("back")) || devices[0];
 
-                console.log("🎥 Gefundene Kamera: ", backCamera.label); // Debugging
+                console.log("🎥 Gefundene Kamera: ", backCamera.label);
 
                 html5QrCode.start(
                     backCamera.id,
@@ -119,7 +119,7 @@
 
         function handleQRCodeScan(qrCodeText) {
             const resultDiv = document.getElementById("result");
-            qrCodeText = qrCodeText.trim(); // Leerräume entfernen
+            qrCodeText = qrCodeText.trim();
 
             if (validCodes.includes(qrCodeText)) {
                 validCodes = validCodes.filter(code => code !== qrCodeText);
@@ -129,6 +129,10 @@
             } else {
                 resultDiv.innerText = "❌ Kein Gewinn, versuche es noch einmal.";
                 resultDiv.style.color = "red";
+                stopScanner();
+                setTimeout(() => {
+                    location.reload(); // Seite neuladen nach falschem Scan
+                }, 2000);
             }
         }
 
