@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Osterspecial - QR Code Scanner</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #f0f0f0;
         }
-
         h1 {
             color: #4CAF50;
         }
-
         .scanner-container {
             border: 2px solid #4CAF50;
             border-radius: 10px;
@@ -24,18 +24,15 @@
             margin: 20px auto;
             max-width: 600px;
         }
-
         #reader {
             width: 100%;
             max-width: 500px;
             margin: auto;
         }
-
         #result {
             margin-top: 20px;
             font-size: 1.2em;
         }
-
         #startScan {
             margin-top: 20px;
             padding: 10px 20px;
@@ -46,11 +43,9 @@
             cursor: pointer;
             border-radius: 5px;
         }
-
         #startScan:hover {
             background-color: #45a049;
         }
-
         #errorMessage {
             color: red;
             font-size: 1em;
@@ -60,7 +55,7 @@
 </head>
 <body>
     <h1>Osterspecial - QR Code Scanner</h1>
-    <p>Scanne einen QR-Code und erfahre, ob du gewonnen hast!</p>
+    <p>Scanne einen QR-Code!</p>
 
     <div class="scanner-container">
         <div id="reader"></div>
@@ -70,8 +65,22 @@
     </div>
 
     <script>
+        // Firebase-Konfiguration (Hier deine eigene Konfiguration einfügen!)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCB1gtbRyxbLSuxu47CfA7Zpfg3Dq6HSsc",
+            authDomain: "DEIN-PROJEKT.firebaseapp.com",
+            databaseURL: "https://osterspecial-5855d-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "osterspecial-5855d",
+            storageBucket: "osterspecial-5855d.firebasestorage.app",
+            messagingSenderId: "777852613251",
+            appId: "1:777852613251:web:2aa4e99b449bddcd6461b6"
+        };
+
+        // Firebase initialisieren
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         let validCodes = ["gewinner1", "gewinner2", "gewinner3", "gewinner4", "gewinner5"];
-        let usedCodes = new Set(JSON.parse(localStorage.getItem("usedCodes")) || []);  // Gespeicherte Codes abrufen
         let scannerActive = false;
         let html5QrCode;
 
@@ -106,30 +115,33 @@
             const resultDiv = document.getElementById("result");
             qrCodeText = qrCodeText.trim();
 
-            if (usedCodes.has(qrCodeText)) {
-                resultDiv.innerText = "❌ Dieser Code wurde bereits verwendet!";
-                resultDiv.style.color = "red";
-                stopScanner();
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
-                return;
-            }
+            // Prüfe, ob der Code bereits gescannt wurde (Datenbankabfrage)
+            database.ref("usedCodes/" + qrCodeText).once("value", (snapshot) => {
+                if (snapshot.exists()) {
+                    resultDiv.innerText = "❌ Dieser Code wurde bereits verwendet!";
+                    resultDiv.style.color = "red";
+                    stopScanner();
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                    return;
+                }
 
-            if (validCodes.includes(qrCodeText)) {
-                usedCodes.add(qrCodeText);
-                localStorage.setItem("usedCodes", JSON.stringify([...usedCodes])); // Speichern
-                resultDiv.innerText = "🎉 Herzlichen Glückwunsch, du hast gewonnen!";
-                resultDiv.style.color = "green";
-                stopScanner();
-            } else {
-                resultDiv.innerText = "❌ Kein Gewinn, versuche es noch einmal.";
-                resultDiv.style.color = "red";
-                stopScanner();
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
-            }
+                // Prüfe, ob es ein gültiger Gewinncode ist
+                if (validCodes.includes(qrCodeText)) {
+                    database.ref("usedCodes/" + qrCodeText).set(true); // Code als benutzt speichern
+                    resultDiv.innerText = "🎉 Herzlichen Glückwunsch, du hast gewonnen!";
+                    resultDiv.style.color = "green";
+                    stopScanner();
+                } else {
+                    resultDiv.innerText = "❌ Kein Gewinn.";
+                    resultDiv.style.color = "red";
+                    stopScanner();
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                }
+            });
         }
 
         function stopScanner() {
