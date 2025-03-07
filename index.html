@@ -34,7 +34,6 @@
         #result {
             margin-top: 20px;
             font-size: 1.2em;
-            color: #d32f2f;
         }
 
         #startScan {
@@ -61,7 +60,7 @@
 </head>
 <body>
     <h1>Osterspecial - QR Code Scanner</h1>
-    <p>Scanne einen QR-Code!</p>
+    <p>Scanne einen QR-Code und erfahre, ob du gewonnen hast!</p>
 
     <div class="scanner-container">
         <div id="reader"></div>
@@ -72,12 +71,11 @@
 
     <script>
         let validCodes = ["gewinner1", "gewinner2", "gewinner3", "gewinner4", "gewinner5"];
-        let usedCodes = new Set();  // Speichert gescannte Codes
+        let usedCodes = new Set(JSON.parse(localStorage.getItem("usedCodes")) || []);  // Gespeicherte Codes abrufen
         let scannerActive = false;
         let html5QrCode;
 
         function startScanner() {
-            console.log("📸 Start-Button wurde geklickt");
             if (scannerActive) return;
             scannerActive = true;
             document.getElementById("errorMessage").innerText = "";
@@ -119,12 +117,13 @@
             }
 
             if (validCodes.includes(qrCodeText)) {
-                usedCodes.add(qrCodeText); // Code als benutzt speichern
+                usedCodes.add(qrCodeText);
+                localStorage.setItem("usedCodes", JSON.stringify([...usedCodes])); // Speichern
                 resultDiv.innerText = "🎉 Herzlichen Glückwunsch, du hast gewonnen!";
                 resultDiv.style.color = "green";
                 stopScanner();
             } else {
-                resultDiv.innerText = "❌ Kein Gewinn.";
+                resultDiv.innerText = "❌ Kein Gewinn, versuche es noch einmal.";
                 resultDiv.style.color = "red";
                 stopScanner();
                 setTimeout(() => {
