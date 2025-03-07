@@ -3,7 +3,9 @@ let validCodes = [
     "gewinner2",
     "gewinner3",
     "gewinner4",
-    "gewinner5"
+    "gewinner5",
+    "gewinner6",
+    "gewinner7",
 ];
 
 let scanning = false; // Flag, das anzeigt, ob wir gerade scannen
