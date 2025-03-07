@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Osterspecial - QR Code Scanner</title>
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js"></script>
+
+    <!-- QR-Code Scanner -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -65,10 +70,10 @@
     </div>
 
     <script>
-        // Firebase-Konfiguration (Hier deine eigene Konfiguration einfügen!)
+        // Firebase-Konfiguration
         const firebaseConfig = {
             apiKey: "AIzaSyCB1gtbRyxbLSuxu47CfA7Zpfg3Dq6HSsc",
-            authDomain: "DEIN-PROJEKT.firebaseapp.com",
+            authDomain: "osterspecial-5855d.firebaseapp.com",
             databaseURL: "https://osterspecial-5855d-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "osterspecial-5855d",
             storageBucket: "osterspecial-5855d.firebasestorage.app",
@@ -91,38 +96,22 @@
 
             html5QrCode = new Html5Qrcode("reader");
 
-            // Überprüfe, ob Kamera zugänglich ist
-            if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-                navigator.mediaDevices.enumerateDevices().then(devices => {
-                    let hasCamera = devices.some(device => device.kind === "videoinput");
-                    if (!hasCamera) {
-                        document.getElementById("errorMessage").innerText = "❌ Keine Kamera gefunden!";
-                        return;
-                    }
-
-                    // Starte den QR-Code-Scanner
-                    html5QrCode.start(
-                        { facingMode: "environment" }, // Rückkamera erzwingen
-                        {
-                            fps: 10,
-                            qrbox: { width: 250, height: 250 },
-                        },
-                        (decodedText) => {
-                            handleQRCodeScan(decodedText);
-                        },
-                        (errorMessage) => {
-                            console.warn("⚠️ QR-Code nicht erkannt:", errorMessage);
-                        }
-                    ).catch(err => {
-                        console.error("❌ Fehler beim Starten der Kamera: ", err);
-                        document.getElementById("errorMessage").innerText = "❌ Kamera konnte nicht gestartet werden!";
-                    });
-                }).catch(error => {
-                    console.error("❌ Fehler beim Zugriffsprüfen auf Geräte:", error);
-                });
-            } else {
-                document.getElementById("errorMessage").innerText = "❌ Fehler beim Überprüfen der Kamera.";
-            }
+            html5QrCode.start(
+                { facingMode: "environment" }, // Rückkamera bevorzugen
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                },
+                (decodedText) => {
+                    handleQRCodeScan(decodedText);
+                },
+                (errorMessage) => {
+                    console.warn("⚠️ QR-Code nicht erkannt:", errorMessage);
+                }
+            ).catch(err => {
+                console.error("❌ Fehler beim Starten der Kamera: ", err);
+                document.getElementById("errorMessage").innerText = "❌ Kamera konnte nicht gestartet werden!";
+            });
 
             document.getElementById("startScan").style.display = "none";
         }
@@ -131,7 +120,7 @@
             const resultDiv = document.getElementById("result");
             qrCodeText = qrCodeText.trim();
 
-            // Prüfe, ob der Code bereits gescannt wurde (Datenbankabfrage)
+            // Prüfe, ob der Code bereits gescannt wurde
             database.ref("usedCodes/" + qrCodeText).once("value", (snapshot) => {
                 if (snapshot.exists()) {
                     resultDiv.innerText = "❌ Dieser Code wurde bereits verwendet!";
