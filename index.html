@@ -124,6 +124,7 @@
         function startScanner() {
             if (scannerActive) return;
             scannerActive = true;
+            document.querySelector(".scanner-container").classList.add("active");
             document.getElementById("errorMessage").innerText = "";
 
             // Scanner-Container anzeigen
